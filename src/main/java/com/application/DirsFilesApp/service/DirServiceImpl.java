@@ -38,6 +38,8 @@ public class DirServiceImpl implements DirService {
     @Transactional(readOnly = true)
     public List<DirFileStatisticsRecord> getFiles(Integer dirId) throws DirNotFoundException {
         List<DirFileStatisticsRecord> result = new ArrayList<>();
+        List<DirFileStatisticsRecord> dirs = new ArrayList<>();
+        List<DirFileStatisticsRecord> files = new ArrayList<>();
 
         Dir dir = dirRepository.findById(dirId).orElseThrow(DirNotFoundException::new);
         for (Dir childDir : dir.getChildDirs()) {
@@ -45,7 +47,7 @@ public class DirServiceImpl implements DirService {
             record.setDir(Boolean.TRUE);
             record.setDirFileName(childDir.getPath());
 
-            result.add(record);
+            dirs.add(record);
         }
 
         for (File childFile : dir.getChildFiles()) {
@@ -54,8 +56,11 @@ public class DirServiceImpl implements DirService {
             record.setDirFileName(childFile.getName());
             record.setDirFileSize(childFile.getSize());
 
-            result.add(record);
+            files.add(record);
         }
+
+        result.addAll(sortByDirFileName(dirs));
+        result.addAll(sortByDirFileName(files));
 
         return result;
     }
